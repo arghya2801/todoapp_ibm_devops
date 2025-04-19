@@ -1,126 +1,150 @@
-import React, { useState } from "react";
+import { useState } from 'react';
+import { Trash2, Plus, Check, Circle, Calendar, Eye, EyeOff } from 'lucide-react';
 
-function TaskManager() {
+export default function TaskManager() {
   const [tasks, setTasks] = useState([]);
-  const [newTask, setNewTask] = useState("");
-  const [editingTaskId, setEditingTaskId] = useState(null);
-  const [editedTaskText, setEditedTaskText] = useState("");
+  const [newTaskText, setNewTaskText] = useState('');
+  const [newTaskDueDate, setNewTaskDueDate] = useState('');
+  const [showCompleted, setShowCompleted] = useState(true);
 
-  const handleInputChange = (e) => {
-    setNewTask(e.target.value);
+  const addTask = () => {
+    if (newTaskText.trim() === '') return;
+    
+    const newTask = {
+      id: Date.now(),
+      text: newTaskText,
+      completed: false,
+      dueDate: newTaskDueDate
+    };
+    
+    setTasks([...tasks, newTask]);
+    setNewTaskText('');
+    setNewTaskDueDate('');
   };
 
-  const handleAddTask = () => {
-    if (newTask.trim() !== "") {
-      setTasks([...tasks, { id: Date.now(), text: newTask, completed: false }]);
-      setNewTask("");
+  const deleteTask = (id) => {
+    setTasks(tasks.filter(task => task.id !== id));
+  };
+
+  const toggleTaskCompletion = (id) => {
+    setTasks(tasks.map(task => 
+      task.id === id ? { ...task, completed: !task.completed } : task
+    ));
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      addTask();
     }
   };
 
-  const handleTaskComplete = (id) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
-  };
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (a.completed === b.completed) {
+      return 0;
+    }
+    return a.completed ? 1 : -1;
+  });
 
-  const handleDeleteTask = (id) => {
-    setTasks(tasks.filter((task) => task.id !== id));
-  };
+  const filteredTasks = showCompleted 
+    ? sortedTasks 
+    : sortedTasks.filter(task => !task.completed);
 
-  const handleEditTask = (id, text) => {
-    setEditingTaskId(id);
-    setEditedTaskText(text);
-  };
-
-  const handleUpdateTask = () => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === editingTaskId ? { ...task, text: editedTaskText } : task
-      )
-    );
-    setEditingTaskId(null);
-    setEditedTaskText("");
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   return (
-    <div className="container mx-auto mt-10 p-6 bg-white shadow-md rounded-md">
-      <h1 className="text-2xl font-semibold mb-4">Task Manager</h1>
-      <div className="flex items-center mb-4">
-        <input
-          type="text"
-          className="shadow appearance-none border rounded w-full py-2 px-3 mr-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          placeholder="Add New Task"
-          value={newTask}
-          onChange={handleInputChange}
-        />
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          onClick={handleAddTask}
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Task Manager</h1>
+        <button 
+          className="flex items-center text-gray-600 hover:text-blue-500"
+          onClick={() => setShowCompleted(!showCompleted)}
         >
-          Add
+          {showCompleted ? 
+            <><EyeOff size={18} className="mr-1" /> Hide Completed</> : 
+            <><Eye size={18} className="mr-1" /> Show Completed</>
+          }
         </button>
       </div>
-      <ul>
-        {tasks.map((task) => (
-          <li
-            key={task.id}
-            className="flex items-center justify-between py-2 border-b border-gray-200"
-          >
-            {editingTaskId === task.id ? (
-              <div className="flex items-center w-full">
-                <input
-                  type="text"
-                  className="shadow appearance-none border rounded w-full py-2 px-3 mr-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  value={editedTaskText}
-                  onChange={(e) => setEditedTaskText(e.target.value)}
-                />
-                <button
-                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                  onClick={handleUpdateTask}
+      
+      <div className="flex mb-6 gap-2">
+        <input
+          type="text"
+          className="flex-grow p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Add a new task..."
+          value={newTaskText}
+          onChange={(e) => setNewTaskText(e.target.value)}
+          onKeyPress={handleKeyPress}
+        />
+        <div className="relative flex items-center">
+          <Calendar size={18} className="absolute left-2 text-gray-500" />
+          <input
+            type="date"
+            className="pl-8 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={newTaskDueDate}
+            onChange={(e) => setNewTaskDueDate(e.target.value)}
+          />
+        </div>
+        <button
+          className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 flex items-center justify-center"
+          onClick={addTask}
+        >
+          <Plus size={20} />
+        </button>
+      </div>
+      
+      <div className="space-y-2">
+        {filteredTasks.length === 0 ? (
+          <p className="text-gray-500 text-center py-3">No tasks to display</p>
+        ) : (
+          filteredTasks.map(task => (
+            <div 
+              key={task.id} 
+              className="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100"
+            >
+              <div className="flex items-center flex-grow">
+                <button 
+                  className="text-gray-500 hover:text-blue-500 mr-2"
+                  onClick={() => toggleTaskCompletion(task.id)}
                 >
-                  Update
+                  {task.completed ? 
+                    <Check className="text-green-500" size={20} /> : 
+                    <Circle size={20} />
+                  }
                 </button>
+                <span className={`${task.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                  {task.text}
+                </span>
               </div>
-            ) : (
-              <>
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="mr-2 leading-tight"
-                    checked={task.completed}
-                    onChange={() => handleTaskComplete(task.id)}
-                  />
-                  <span
-                    className={
-                      task.completed ? "line-through text-gray-500" : ""
-                    }
-                  >
-                    {task.text}
-                  </span>
+              
+              {task.dueDate && (
+                <div className="text-sm text-gray-500 mx-4">
+                  Due: {formatDate(task.dueDate)}
                 </div>
-                <div>
-                  <button
-                    className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mr-2 focus:outline-none focus:shadow-outline"
-                    onClick={() => handleEditTask(task.id, task.text)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                    onClick={() => handleDeleteTask(task.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
+              )}
+              
+              <button 
+                className="text-gray-400 hover:text-red-500" 
+                onClick={() => deleteTask(task.id)}
+              >
+                <Trash2 size={18} />
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+      
+      <div className="mt-6 text-sm text-gray-500">
+        {tasks.filter(task => task.completed).length} of {tasks.length} tasks completed
+      </div>
     </div>
   );
 }
-
-export default TaskManager;
