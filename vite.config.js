@@ -8,4 +8,11 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
+  server: {
+    host: true, // This is important for Docker environments
+    port: 5173,
+    watch: {
+      usePolling: true,
+    },
+  },
 })
