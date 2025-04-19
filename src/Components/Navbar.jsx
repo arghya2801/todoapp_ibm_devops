@@ -1,19 +1,30 @@
 import React from "react";
 
-const Navbar = () => {
+function Navbar() {
   return (
-    <>
-      <nav className="bg-blue-500 p-4 shadow-lg">
-        <ul className="flex justify-between">
-          <li className="text-3xl text-white font-bold">Task Manager</li>
-          <ul className="flex gap-4">
-            <li className="text-white font-bold">Home</li>
-            <li className="text-white font-bold">About</li>
-          </ul>
+    <nav className="bg-gray-800 p-4 text-white">
+      <div className="container mx-auto flex items-center justify-between">
+        <span className="text-xl font-semibold">Task Manager</span>
+        <ul className="flex space-x-4">
+          <li>
+            <a href="#" className="hover:text-gray-300">
+              Home
+            </a>
+          </li>
+          <li>
+            <a href="#" className="hover:text-gray-300">
+              About
+            </a>
+          </li>
+          <li>
+            <a href="#" className="hover:text-gray-300">
+              Contact
+            </a>
+          </li>
         </ul>
-      </nav>
-    </>
+      </div>
+    </nav>
   );
-};
+}
 
 export default Navbar;
